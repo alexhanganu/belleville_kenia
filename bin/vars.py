@@ -3,8 +3,8 @@
 from os import path
 
 class VARS():
-    def __init__(self):
-        self.materials_DIR = "~/Dropbox/pKenia"
+    def __init__(self, project_vars):
+        self.materials_DIR = project_vars["materials_DIR"][1]
 
     def f_source(self):
         return path.join(self.materials_DIR,

@@ -20,33 +20,33 @@ import pandas as pd
 import numpy as np
 import json
 import logging
-from .utils import save_json, load_json, get_path
 
 log = logging.getLogger(__name__)
 logging.basicConfig(format='%(message)s')
 log.setLevel(logging.INFO)
 
 class MakeGroupFile:
-    def __init__(self, project_vars):
+    def __init__(self, project_vars, utils, Table):
         self.project_vars = project_vars
         self.vars         = VARS(project_vars)
         self._id          = project_vars['id_col']
-        src_file          = self.vars.f_and_sheets()['source']
-        self.df           = self.vars.read_xlsx_file(src_file['file'], src_file['sheet'], src_file['cols'])
+        src_file          = self.vars.f_source()
+        self.df           = Table().get_df(src_file)
         self.exclude_nan  = False
         self.run()
 
     def run(self):
-        ready_miss   = self.get_missing_data()
-        self.project_vars["materials_DIR"] = 'C:/Users/Jessica/Desktop' #tmp, to be removed
-        if ready_miss:
-            log.info('missing data populated, doublons defined')
-            self.check_subjects()
-            self.exclude_columns()
-            self.create_groups()
-            self.create_data_file()
-        else:
-            log.info(f'ERR in steps of missing data of defining doublons, doublons')
+        print(self.df.columns)
+        # ready_miss   = self.get_missing_data()
+        # self.project_vars["materials_DIR"] = 'C:/Users/Jessica/Desktop' #tmp, to be removed
+        # if ready_miss:
+            # log.info('missing data populated, doublons defined')
+            # self.check_subjects()
+            # self.exclude_columns()
+            # self.create_groups()
+            # self.create_data_file()
+        # else:
+            # log.info(f'ERR in steps of missing data of defining doublons, doublons')
 
     def check_subjects(self):
         self.ls_indices_to_drop = list()
