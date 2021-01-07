@@ -16,6 +16,11 @@ class VARS():
                 'freesurfer': {'file': f_source, 'sheet' : 'données Alex_FS-711', 'ids':'ID',
                          'cols':self.params_fs(), 'rename': ''}}
 
+    def values_exception(self):
+        return {
+        'P482': {'Gender': 2}
+                        }
+
     def params_demographics(self):
         params_x = ['Age',]
         params_y_cog = ['Gender', 'Scol', 'MMSE', 'MoCA', 'Boston', 'BORB_lignes', 'Hachinski', 'Charlson', 'AVQ', 'Rey_co_tps', 'Rey_co_pts', 'Rey_3min', 'Str_pts_tps', 'Str_pts_pts', 'Str_mots_tps', 'Str_mots_pts', 'Str_coul_tps', 'Str_coul_pts', 'RLRI_imm', 'RLRI_RL1', 'RLRI_RT1', 'RLRI_RL2', 'RLRI_RT2', 'RLRI_RL3', 'RLRI_RT3', 'RLRI_RLd', 'RLRI_RTd', 'RLRI_rec', 'RLRI_recS', 'RLRI_recN', 'GDS', 'Vocab_Brut', 'Vocab_Stand', 'Bartréz_Complet', 'Bartréz', 'Scolprof', 'Brixton_Brut', 'Brixton_Stand', 'Hit_correted_0back', 'Hit_correted_1back', 'Hit_correted_2back', 'FA_corrected_0back', 'FA_corrected_1back', 'FA_corrected_2back', 'Hit_FA_corrected_0back', 'Hit_FA_corrected_1back', 'Hit_FA_corrected_2back', 'dprime_0back', 'dprime_1back', 'dprime_2back', 'dprime_1back_0back', 'dprime_2back_0back', 'dprime_2back_1back', 'Total_pRT_0back', 'Total_pRT_1back', 'Total_pRT_2back', 'Total_pRT_1back_0back', 'Total_pRT_2back_0back', 'Total_pRT_2back_1back', 'Mean_pRT_0back', 'Mean_pRT_1back', 'Mean_pRT_2back', 'Mean_pRT_1back_0back', 'Mean_pRT_2back_0back', 'Mean_pRT_2back_1back', ]

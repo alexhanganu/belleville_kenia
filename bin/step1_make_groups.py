@@ -1,15 +1,16 @@
 #!/bin/python
 # -*- coding: utf-8 -*-
-#Alexandru Hanganu, 2020 nov 17
+#Alexandru Hanganu, 20200107
 
 ''' Read the source file with data
-    extracts the corresponding variables
-    checks that ids are present
+    extract corresponding variables
     checks all variables
-    excludes subjects from analysis, based on rules
+    populate missing variables
+    excludes columns or subjects from analysis
 Args:
-    project variables (nimb style)
+    project variables (nimb style), utils (from nimb) and Table (from nimb)
 Return:
+    create the grid database (csv or xlsx)
     True or False if all steps are correct and finished
 '''
 
@@ -27,12 +28,12 @@ log.setLevel(logging.INFO)
 
 class MakeGroupFile:
     def __init__(self, project_vars, utils, Table):
-        self.tab          = Table()
-        self.project_vars = project_vars
-        self.vars         = VARS(project_vars)
-        self._id          = project_vars['id_col']
-        self.files             = self.vars.f_source()
-        self.exclude_nan  = False
+        self.tab           = Table()
+        self.project_vars  = project_vars
+        self.materials_DIR = self.project_vars["materials_DIR"][1]
+        self.vars          = VARS(project_vars)
+        self._id           = project_vars['id_col']
+        self.files         = self.vars.f_source()
         self.run()
 
     def run(self):
@@ -51,9 +52,23 @@ class MakeGroupFile:
         # self.create_data_file()
 
     def populate_missing_data(self):
-        
+        """Some values are missing. If number of missing values is lower then 5%,
+        missing values are changed to group mean
+        else: columns is excluded
+        """
+        self.populate_exceptions()
+        ids_with_errs, cols_with_nans = self.tab.check_nan(self.grid_df,
+                                    err_file_abspath = path.join(self.materials_DIR, "missing_values.json"))
+
+        print("cols with missing values:", cols_with_nans)
+
+    def populate_exceptions(self):
+        exceptions = self.vars.values_exception()
+        for ix in exceptions:
+            for col in exceptions[ix]:
+                self.grid_df.at[ix, col] = exceptions[ix][col]
 
     def create_data_file(self):
-        file_path_name = path.join(self.project_vars["materials_DIR"][1], self.project_vars["GLM_file_group"])
+        file_path_name = path.join(self.materials_DIR, self.project_vars["GLM_file_group"])
         log.info('creating file with groups {}'.format(file_path_name))
         self.tab.save_df(self.grid_df, file_path_name, sheet_name = 'grid')
