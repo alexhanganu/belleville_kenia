@@ -11,6 +11,7 @@ from bin import nimb_link
 NIMB_HOME = nimb_link.link_with_nimb()
 from setup.get_vars import Get_Vars, SetProject
 from stats.db_processing import Table
+from stats.preprocessing import get_groups
 from distribution import utilities as utils
 all_vars = Get_Vars()
 project_vars = all_vars.projects[project]
@@ -18,7 +19,7 @@ project_vars = all_vars.projects[project]
 
 if STEP0_make_groups:
     from bin.step1_make_groups import MakeGroupFile
-    MakeGroupFile(project_vars, utils, Table)
+    MakeGroupFile(project_vars, utils, Table, get_groups)
  
 # if STEP1_prep1_fs711_dir:
 #     from bin import step1_prep1_fs711_dir

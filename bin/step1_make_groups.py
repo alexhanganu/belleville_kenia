@@ -27,13 +27,15 @@ logging.basicConfig(format='%(message)s')
 log.setLevel(logging.INFO)
 
 class MakeGroupFile:
-    def __init__(self, project_vars, utils, Table):
+    def __init__(self, project_vars, utils, Table, get_groups):
         self.tab           = Table()
+        self.get_groups    = get_groups
         self.project_vars  = project_vars
         self.materials_DIR = self.project_vars["materials_DIR"][1]
         self.vars          = VARS(project_vars)
         self._id           = project_vars['id_col']
         self.files         = self.vars.f_source()
+        self.miss_val_file = path.join(self.materials_DIR, "missing_values.json")
         self.run()
 
     def run(self):
@@ -48,19 +50,20 @@ class MakeGroupFile:
                                     src_fs_file['cols'],
                                     src_fs_file['ids'])
         self.grid_df = self.tab.join_dfs(df, df_fs, how='outer')
+        self.groups = self.get_groups(self.grid_df[self.project_vars["group_col"]].tolist())
         self.populate_missing_data()
         # self.create_data_file()
 
     def populate_missing_data(self):
         """Some values are missing. If number of missing values is lower then 5%,
-        missing values are changed to group mean
-        else: columns is excluded
+            missing values are changed to group mean
+            else: columns is excluded
         """
         self.populate_exceptions()
-        ids_with_errs, cols_with_nans = self.tab.check_nan(self.grid_df,
-                                    err_file_abspath = path.join(self.materials_DIR, "missing_values.json"))
-
-        print("cols with missing values:", cols_with_nans)
+        _, cols_with_nans = self.tab.check_nan(self.grid_df, self.miss_val_file)
+        for col in cols_with_nans:
+            val = self.tab.get_mean(self.grid_df[col].tolist())
+            print(val)
 
     def populate_exceptions(self):
         exceptions = self.vars.values_exception()
