@@ -47,7 +47,11 @@ class MakeGroupFile:
                                     src_fs_file['cols'],
                                     src_fs_file['ids'])
         self.grid_df = self.tab.join_dfs(df, df_fs, how='outer')
-        self.create_data_file()
+        self.populate_missing_data()
+        # self.create_data_file()
+
+    def populate_missing_data(self):
+        
 
     def create_data_file(self):
         file_path_name = path.join(self.project_vars["materials_DIR"][1], self.project_vars["GLM_file_group"])
