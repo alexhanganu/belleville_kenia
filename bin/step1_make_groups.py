@@ -61,9 +61,12 @@ class MakeGroupFile:
         """
         self.populate_exceptions()
         _, cols_with_nans = self.tab.check_nan(self.grid_df, self.miss_val_file)
-        for col in cols_with_nans:
-            val = self.tab.get_mean(self.grid_df[col].tolist())
-            print(val)
+        for group in self.groups:
+            df_group = self.tab.get_df_per_parameter(self.grid_df, self.project_vars['group_col'], group)
+            print(df_group.index)
+            # for col in cols_with_nans:
+                # val = self.tab.get_mean(self.grid_df[col].tolist())
+                # print(val)
 
     def populate_exceptions(self):
         exceptions = self.vars.values_exception()
