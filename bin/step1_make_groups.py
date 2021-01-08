@@ -27,9 +27,9 @@ logging.basicConfig(format='%(message)s')
 log.setLevel(logging.INFO)
 
 class MakeGroupFile:
-    def __init__(self, project_vars, utils, Table, get_groups):
+    def __init__(self, project_vars, utils, Table, Preprocess):
         self.tab           = Table()
-        self.get_groups    = get_groups
+        self.preproc       = Preprocess()
         self.project_vars  = project_vars
         self.materials_DIR = self.project_vars["materials_DIR"][1]
         self.vars          = VARS(project_vars)
@@ -50,7 +50,7 @@ class MakeGroupFile:
                                     src_fs_file['cols'],
                                     src_fs_file['ids'])
         self.grid_df = self.tab.join_dfs(df, df_fs, how='outer')
-        self.groups = self.get_groups(self.grid_df[self.project_vars["group_col"]].tolist())
+        self.groups = self.preproc.get_groups(self.grid_df[self.project_vars["group_col"]].tolist())
         self.populate_missing_data()
         # self.create_data_file()
 
@@ -63,10 +63,8 @@ class MakeGroupFile:
         _, cols_with_nans = self.tab.check_nan(self.grid_df, self.miss_val_file)
         for group in self.groups:
             df_group = self.tab.get_df_per_parameter(self.grid_df, self.project_vars['group_col'], group)
-            print(df_group.index)
-            # for col in cols_with_nans:
-                # val = self.tab.get_mean(self.grid_df[col].tolist())
-                # print(val)
+            df_group = self.preproc.populate_missing_vals_2mean(df_group, cols_with_nans)
+            # print(df_group)
 
     def populate_exceptions(self):
         exceptions = self.vars.values_exception()
