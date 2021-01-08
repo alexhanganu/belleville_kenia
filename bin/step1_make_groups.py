@@ -52,7 +52,7 @@ class MakeGroupFile:
         self.grid_df = self.tab.join_dfs(df, df_fs, how='outer')
         self.groups = self.preproc.get_groups(self.grid_df[self.project_vars["group_col"]].tolist())
         self.populate_missing_data()
-        # self.create_data_file()
+        self.create_data_file()
 
     def populate_missing_data(self):
         """Some values are missing. If number of missing values is lower then 5%,
@@ -61,10 +61,15 @@ class MakeGroupFile:
         """
         self.populate_exceptions()
         _, cols_with_nans = self.tab.check_nan(self.grid_df, self.miss_val_file)
+        df_groups = dict()
         for group in self.groups:
             df_group = self.tab.get_df_per_parameter(self.grid_df, self.project_vars['group_col'], group)
             df_group = self.preproc.populate_missing_vals_2mean(df_group, cols_with_nans)
-            # print(df_group)
+            df_groups[group] = df_group
+        frames = (df_groups[i] for i in df_groups)
+        df_meaned_vals = pd.concat(frames, axis=0, sort=True)
+        for col in cols_with_nans:
+            self.grid_df[col] = df_meaned_vals[col]
 
     def populate_exceptions(self):
         exceptions = self.vars.values_exception()
