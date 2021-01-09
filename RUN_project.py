@@ -1,10 +1,10 @@
 # !/usr/bin/env python
 # coding: utf-8
 # last update: 20210102
+
 project = "belleville_kenia"
 
 STEP0_make_groups        = True
-
 
 from os import path, system
 from bin import nimb_link
@@ -20,18 +20,4 @@ project_vars = all_vars.projects[project]
 if STEP0_make_groups:
     from bin.step1_make_groups import MakeGroupFile
     MakeGroupFile(project_vars, utils, Table, Preprocess)
- 
-# if STEP1_prep1_fs711_dir:
-#     from bin import step1_prep1_fs711_dir
-#     step1_prep1_fs711_dir.CleanFS711Dir(NIMB_HOME, path_derivatives_fs7, path_derivatives_fs7_from6, path2xtrct, path_err)
-
-# if STEP1_prep2_fs_processed:
-#     from bin import step1_prep2_fs_processed
-#     step1_prep2_fs_processed.LinkIDstoProcessed(project_vars)
-
-
-# if STEP3_run_stats:
-#     chdir(NIMB_HOME)
-#     system('python3 nimb.py -process run-stats -project {}'.format(project))
-
 

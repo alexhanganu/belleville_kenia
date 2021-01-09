@@ -14,17 +14,8 @@ Return:
     True or False if all steps are correct and finished
 '''
 
-from os import listdir, path, walk, sep
-
+from os import path
 from .vars import VARS
-import pandas as pd
-import numpy as np
-import json
-import logging
-
-log = logging.getLogger(__name__)
-logging.basicConfig(format='%(message)s')
-log.setLevel(logging.INFO)
 
 class MakeGroupFile:
     def __init__(self, project_vars, utils, Table, Preprocess):
