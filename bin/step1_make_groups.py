@@ -70,5 +70,5 @@ class MakeGroupFile:
 
     def create_data_file(self):
         file_path_name = path.join(self.materials_DIR, self.project_vars["GLM_file_group"])
-        log.info('creating file with groups {}'.format(file_path_name))
+        print('creating file with groups {}'.format(file_path_name))
         self.tab.save_df(self.grid_df, file_path_name, sheet_name = 'grid')
