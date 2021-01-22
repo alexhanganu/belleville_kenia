@@ -42,6 +42,7 @@ class MakeGroupFile:
                                     src_fs_file['ids'])
         self.grid_df = self.tab.join_dfs(df, df_fs, how='outer')
         self.groups = self.preproc.get_groups(self.grid_df[self.project_vars["group_col"]].tolist())
+        self.grid_df.index.name = self._id
         self.populate_missing_data()
         self.create_data_file()
 
