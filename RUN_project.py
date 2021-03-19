@@ -4,7 +4,8 @@
 
 project = "belleville_kenia"
 
-STEP0_make_groups        = True
+STEP0_make_groups        = False
+STEP1_run_fslgm          = True
 
 from os import path, system
 from bin import nimb_link
@@ -21,3 +22,6 @@ if STEP0_make_groups:
     from bin.step1_make_groups import MakeGroupFile
     MakeGroupFile(project_vars, utils, Table, Preprocess)
 
+if STEP1_run_fslgm:
+	from bin.step2_fsglm_run import FSGLMrun
+	FSGLMrun(project_vars, utils, Table, Preprocess)

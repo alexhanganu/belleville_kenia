@@ -1,6 +1,6 @@
 #!/bin/python
 
-from os import path, sep
+import os
 
 class VARS():
     def __init__(self, project_vars):
@@ -8,13 +8,15 @@ class VARS():
         self.materials_DIR = project_vars["materials_DIR"][1]
 
     def f_source(self):
-        f_source = path.join(self.materials_DIR,
-                'source','WM_Stats to Alex_22 dec 2020.xlsx').replace(sep, '/')
+        f_source = os.path.join(self.materials_DIR,
+                'source','WM_Stats to Alex_22 dec 2020.xlsx').replace(os.sep, '/')
         params_x, params_y, params_y_task = self.params_demographics()
         return {'source':{'file': f_source, 'sheet' : 'WM_fmri_data', 'ids':self.project_vars['id_col'],
                           'cols': [self.project_vars['id_col'], self.project_vars['group_col']]+params_x+params_y+params_y_task, 'rename': ''},
                 'freesurfer': {'file': f_source, 'sheet' : 'données Alex_FS-711', 'ids':'ID',
                          'cols':self.params_fs(), 'rename': ''}}
+    def fs_processed_path(self):
+        return '/media/ssp/Samira_Rouge_structurelle/backup_samira/IRM_Structurelle/Brain_training/Analyse avec Alex/'
 
     def values_exception(self):
         return {
