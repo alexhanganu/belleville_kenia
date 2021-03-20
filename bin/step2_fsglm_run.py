@@ -30,7 +30,9 @@ class FSGLMrun:
         self.run()
 
     def run(self):
-        fs_processed = os.listdir(self.vars.fs_processed_path())
+        # fs_processed = os.listdir(self.vars.fs_processed_path())
+                # src_file    = self.files['source']
+
         print(fs_processed)
         # src_file    = self.files['source']
         # src_fs_file = self.files['freesurfer']

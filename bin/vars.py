@@ -12,9 +12,15 @@ class VARS():
                 'source','WM_Stats to Alex_22 dec 2020.xlsx').replace(os.sep, '/')
         params_x, params_y, params_y_task = self.params_demographics()
         return {'source':{'file': f_source, 'sheet' : 'WM_fmri_data', 'ids':self.project_vars['id_col'],
-                          'cols': [self.project_vars['id_col'], self.project_vars['group_col']]+params_x+params_y+params_y_task, 'rename': ''},
+                          'cols': [self.project_vars['id_col'], self.project_vars['group_col']]+params_x+params_y+params_y_task,
+                          'rename': ''},
                 'freesurfer': {'file': f_source, 'sheet' : 'données Alex_FS-711', 'ids':'ID',
-                         'cols':self.params_fs(), 'rename': ''}}
+                         'cols':self.params_fs(),
+                         'rename': ''},
+                'grid':{'file':'grid.csv', 'sheet': 'grid', 'ids': self.project_vars['id_col'],
+                        'cols': [self.project_vars['id_col'], self.project_vars['group_col']]+params_x+params_y+params_y_task,
+                        'rename': ''}}
+
     def fs_processed_path(self):
         return '/media/ssp/Samira_Rouge_structurelle/backup_samira/IRM_Structurelle/Brain_training/Analyse avec Alex/'
 
