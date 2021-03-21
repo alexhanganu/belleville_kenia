@@ -30,48 +30,20 @@ class FSGLMrun:
         self.run()
 
     def run(self):
-        # fs_processed = os.listdir(self.vars.fs_processed_path())
-                # src_file    = self.files['source']
+        fs_processed = os.listdir(self.vars.fs_processed_path())
+        fs_processed = [i for i in fs_processed if 'long' not in i]
+        grid_df    = self.tab.get_df(self.files['grid']['file'])
+        grid_ids = grid_df[self.files['grid']['ids']].tolist()
 
+        print(grid_ids)
         print(fs_processed)
-        # src_file    = self.files['source']
-        # src_fs_file = self.files['freesurfer']
-        # df    = self.tab.get_df(src_file['file'],
-        #                             src_file['sheet'],
-        #                             src_file['cols'],
-        #                             src_file['ids'])
-        # df_fs = self.tab.get_df(src_fs_file['file'],
-        #                             src_fs_file['sheet'],
-        #                             src_fs_file['cols'],
-        #                             src_fs_file['ids'])
+
         # self.grid_df = self.tab.join_dfs(df, df_fs, how='outer')
         # self.groups = self.preproc.get_groups(self.grid_df[self.project_vars["group_col"]].tolist())
         # self.grid_df.index.name = self._id
         # self.populate_missing_data()
         # self.create_data_file()
 
-    def populate_missing_data(self):
-        """Some values are missing. If number of missing values is lower then 5%,
-            missing values are changed to group mean
-            else: columns is excluded
-        """
-        self.populate_exceptions()
-        _, cols_with_nans = self.tab.check_nan(self.grid_df, self.miss_val_file)
-        df_groups = dict()
-        for group in self.groups:
-            df_group = self.tab.get_df_per_parameter(self.grid_df, self.project_vars['group_col'], group)
-            df_group = self.preproc.populate_missing_vals_2mean(df_group, cols_with_nans)
-            df_groups[group] = df_group
-        frames = (df_groups[i] for i in df_groups)
-        df_meaned_vals = pd.concat(frames, axis=0, sort=True)
-        for col in cols_with_nans:
-            self.grid_df[col] = df_meaned_vals[col]
-
-    def populate_exceptions(self):
-        exceptions = self.vars.values_exception()
-        for ix in exceptions:
-            for col in exceptions[ix]:
-                self.grid_df.at[ix, col] = exceptions[ix][col]
 
     def create_data_file(self):
         file_path_name = os.path.join(self.materials_DIR, self.project_vars["GLM_file_group"])

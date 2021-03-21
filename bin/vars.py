@@ -17,7 +17,8 @@ class VARS():
                 'freesurfer': {'file': f_source, 'sheet' : 'données Alex_FS-711', 'ids':'ID',
                          'cols':self.params_fs(),
                          'rename': ''},
-                'grid':{'file':'grid.csv', 'sheet': 'grid', 'ids': self.project_vars['id_col'],
+                'grid':{'file':os.path.join(self.materials_DIR,'grid.csv'),
+                        'sheet': 'grid', 'ids': self.project_vars['id_col'],
                         'cols': [self.project_vars['id_col'], self.project_vars['group_col']]+params_x+params_y+params_y_task,
                         'rename': ''}}
 
