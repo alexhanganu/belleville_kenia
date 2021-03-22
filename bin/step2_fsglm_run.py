@@ -26,17 +26,13 @@ class FSGLMrun:
         self.vars          = VARS(project_vars)
         self._id           = project_vars['id_col']
         self.files         = self.vars.f_source()
-        self.miss_val_file = os.path.join(self.materials_DIR, "missing_values.json")
         self.run()
 
     def run(self):
-        fs_processed = os.listdir(self.vars.fs_processed_path())
-        fs_processed = [i for i in fs_processed if 'long' not in i]
-        grid_df    = self.tab.get_df(self.files['grid']['file'])
-        grid_ids = grid_df[self.files['grid']['ids']].tolist()
+        self.grid_df = self.tab.get_df(self.files['grid']['file'])
+        ids_fs_grid  = self.find_correspondance()
 
-        print(grid_ids)
-        print(fs_processed)
+        print(ids_fs_grid)
 
         # self.grid_df = self.tab.join_dfs(df, df_fs, how='outer')
         # self.groups = self.preproc.get_groups(self.grid_df[self.project_vars["group_col"]].tolist())
@@ -44,6 +40,38 @@ class FSGLMrun:
         # self.populate_missing_data()
         # self.create_data_file()
 
+    def find_correspondance(self):
+        '''ids in the grid are different from ids that were processed with freesurfer
+            script finds the correspondance
+        '''
+        ids_fs_grid = dict()
+        miss = list()
+        fs_processed = self.get_fs_processed_classified()        
+        grid_ids = self.grid_df[self.files['grid']['ids']].tolist()
+        for _id in grid_ids:
+            fs_proc_id = _id.replace('A','').lower()
+            if fs_proc_id in fs_processed:
+                ids_fs_grid[fs_proc_id] = fs_processed[fs_proc_id]
+            else:
+                ids_fs_grid[fs_proc_id] = list()
+                miss.append(fs_proc_id)
+        print(ids_fs_grid)
+        print(miss)
+
+
+    def get_fs_processed_classified(self):
+        d = dict()
+        fs_processed = os.listdir(self.vars.fs_processed_path())
+        for i in [i for i in fs_processed if 'long' in i]:
+            long_ids = i.split('.')
+            id_long = long_ids[-1]
+            if id_long not in d:
+                d[id_long] = list()
+                d[id_long].append(long_ids[0])
+            else:
+                d[id_long].append(long_ids[0])
+        print(d)
+        return d
 
     def create_data_file(self):
         file_path_name = os.path.join(self.materials_DIR, self.project_vars["GLM_file_group"])
