@@ -46,8 +46,8 @@ class FSGLMrun:
         '''
         ids_fs_grid = dict()
         miss = list()
-        fs_processed = self.get_fs_processed_classified()        
         grid_ids = self.grid_df[self.files['grid']['ids']].tolist()
+        fs_processed = self.get_fs_processed_classified(grid_ids)
         for _id in grid_ids:
             fs_proc_id = _id.replace('A','').lower()
             if fs_proc_id in fs_processed:
@@ -55,22 +55,42 @@ class FSGLMrun:
             else:
                 ids_fs_grid[fs_proc_id] = list()
                 miss.append(fs_proc_id)
-        print(ids_fs_grid)
-        print(miss)
+        # print(ids_fs_grid)
+        # print(miss)
 
 
-    def get_fs_processed_classified(self):
+    def get_fs_processed_classified(self, grid_ids):
         d = dict()
         fs_processed = os.listdir(self.vars.fs_processed_path())
-        for i in [i for i in fs_processed if 'long' in i]:
-            long_ids = i.split('.')
-            id_long = long_ids[-1]
-            if id_long not in d:
-                d[id_long] = list()
-                d[id_long].append(long_ids[0])
-            else:
-                d[id_long].append(long_ids[0])
-        print(d)
+        # print(fs_processed)
+        for i in grid_ids:
+            for proc_id in fs_processed:
+                if i in proc_id:
+                    d = self.populate_dict(d, i, proc_id)
+        for key in d:
+            if len(d[key]) > 1:
+                print(key, d[key])
+        '''first script was written on data from the Brarin_training folder
+            but multiple ids were missing from that folder,
+            this meant that the main processed folder must be used anyway
+        '''
+        # for i in [i for i in fs_processed if 'long' in i]:
+        #     long_ids = i.split('.')
+        #     id_long = long_ids[-1]
+        #     if id_long not in d:
+        #         d[id_long] = list()
+        #         d[id_long].append(long_ids[0])
+        #     else:
+        #         d[id_long].append(long_ids[0])
+        # print(d)
+        return d
+
+    def populate_dict(self, d, i, val):
+        if i not in d:
+            d[i] = list()
+        else:
+            if not val.endswith('.mat'):
+                d[i].append(val)
         return d
 
     def create_data_file(self):
