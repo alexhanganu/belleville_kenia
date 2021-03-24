@@ -23,8 +23,8 @@ class VARS():
                         'rename': ''}}
 
     def fs_processed_path(self):
-        return '/media/ssp/Samira_Rouge_structurelle/backup_samira/IRM_Structurelle/Aanalyse_structurelle/freesurfer_Alex_2018/processed'
-            # '/media/ssp/Samira_Rouge_structurelle/backup_samira/IRM_Structurelle/Brain_training/Analyse avec Alex/',
+        return {'processed': '/media/ssp/Samira_Rouge_structurelle/backup_samira/IRM_Structurelle/Aanalyse_structurelle/freesurfer_Alex_2018/processed',
+                'project'  : '/media/ssp/Samira_Rouge_structurelle/backup_samira/IRM_Structurelle/Brain_training/Analyse avec Alex/'}
 
     def values_exception(self):
         return {

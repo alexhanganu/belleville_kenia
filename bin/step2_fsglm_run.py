@@ -32,7 +32,7 @@ class FSGLMrun:
         self.grid_df = self.tab.get_df(self.files['grid']['file'])
         ids_fs_grid  = self.find_correspondance()
 
-        print(ids_fs_grid)
+        # print(ids_fs_grid)
 
         # self.grid_df = self.tab.join_dfs(df, df_fs, how='outer')
         # self.groups = self.preproc.get_groups(self.grid_df[self.project_vars["group_col"]].tolist())
@@ -45,52 +45,59 @@ class FSGLMrun:
             script finds the correspondance
         '''
         ids_fs_grid = dict()
-        miss = list()
-        grid_ids = self.grid_df[self.files['grid']['ids']].tolist()
-        fs_processed = self.get_fs_processed_classified(grid_ids)
-        for _id in grid_ids:
-            fs_proc_id = _id.replace('A','').lower()
-            if fs_proc_id in fs_processed:
-                ids_fs_grid[fs_proc_id] = fs_processed[fs_proc_id]
-            else:
-                ids_fs_grid[fs_proc_id] = list()
-                miss.append(fs_proc_id)
-        # print(ids_fs_grid)
-        # print(miss)
-
-
-    def get_fs_processed_classified(self, grid_ids):
-        d = dict()
-        fs_processed = os.listdir(self.vars.fs_processed_path())
-        # print(fs_processed)
-        for i in grid_ids:
-            for proc_id in fs_processed:
-                if i in proc_id:
-                    d = self.populate_dict(d, i, proc_id)
-        for key in d:
-            if len(d[key]) > 1:
-                print(key, d[key])
-        '''first script was written on data from the Brarin_training folder
-            but multiple ids were missing from that folder,
-            this meant that the main processed folder must be used anyway
-        '''
-        # for i in [i for i in fs_processed if 'long' in i]:
-        #     long_ids = i.split('.')
-        #     id_long = long_ids[-1]
-        #     if id_long not in d:
-        #         d[id_long] = list()
-        #         d[id_long].append(long_ids[0])
+        self.grid_ids = self.grid_df[self.files['grid']['ids']].tolist()
+        # fs_proc_proc = self.get_fs_processed_processed()
+        fs_proc_proj = self.get_fsprocessed_from_project()
+        # for _id in self.grid_ids:
+        #     fs_proc_id = _id.replace('A','').lower()
+        #     if fs_proc_id in fs_processed:
+        #         ids_fs_grid[fs_proc_id] = fs_processed[fs_proc_id]
         #     else:
-        #         d[id_long].append(long_ids[0])
-        # print(d)
+        #         ids_fs_grid[fs_proc_id] = list()
+        #         miss.append(fs_proc_id)
+            # d = self.populate_dict(d, i, proc_id)
+        # print(ids_fs_grid)
+
+
+    def get_fs_processed_processed(self):
+        '''extracting processed ids from the main processed folder
+            based on grid_ids
+        '''
+        d = dict()
+        fs_processed = os.listdir(self.vars.fs_processed_path()['processed'])
+        for _id in self.grid_ids:
+            for i in fs_processed:
+                if _id in i:
+                    d = self.populate_dict(d, _id, i)
         return d
 
-    def populate_dict(self, d, i, val):
-        if i not in d:
-            d[i] = list()
+    def get_fsprocessed_from_project(self):
+        '''extracting processed ids from the "Brain_training" folder
+        '''
+        grid_ids_to_proc = {}
+        for _id in self.grid_ids:
+            fs_proc_id = _id.replace('A','').lower()
+            grid_ids_to_proc[fs_proc_id] = _id
+        print(grid_ids_to_proc)
+
+        fs_processed_proj = os.listdir(self.vars.fs_processed_path()['project'])
+        processed_proj = [i for i in fs_processed_proj if 'long' in i]
+        d = dict()
+        for _id_long in processed_proj:
+            _id_proc = _id_long.split('.')[0]
+            if _id_proc[:4] in grid_ids_to_proc:
+                d = self.populate_dict(d, grid_ids_to_proc[_id_proc[:4]], _id_proc)
+            else:
+                print('not in grid ids:', _id_proc)
+        return d
+
+    def populate_dict(self, d, cle, val):
+        if cle not in d:
+            d[cle] = list()
         else:
             if not val.endswith('.mat'):
-                d[i].append(val)
+                d[cle].append(val)
+        print(d)
         return d
 
     def create_data_file(self):
