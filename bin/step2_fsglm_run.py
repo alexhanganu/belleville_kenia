@@ -42,12 +42,15 @@ class FSGLMrun:
 
     def find_correspondance(self):
         '''ids in the grid are different from ids that were processed with freesurfer
-            script finds the correspondance
+            extract all processed ids that match the grid ids
+            for each ids extract the values of whole hippocampus
+            chk the values with the values present in the grid file
+            retain the processed ids based on those values
         '''
         ids_fs_grid = dict()
         self.grid_ids = self.grid_df[self.files['grid']['ids']].tolist()
+        print(self.grid_df['wholeBrainstem_Brainstem'])
         # fs_proc_proc = self.get_fs_processed_processed()
-        fs_proc_proj = self.get_fsprocessed_from_project()
         # for _id in self.grid_ids:
         #     fs_proc_id = _id.replace('A','').lower()
         #     if fs_proc_id in fs_processed:
@@ -69,27 +72,9 @@ class FSGLMrun:
             for i in fs_processed:
                 if _id in i:
                     d = self.populate_dict(d, _id, i)
+        print(d)
         return d
 
-    def get_fsprocessed_from_project(self):
-        '''extracting processed ids from the "Brain_training" folder
-        '''
-        grid_ids_to_proc = {}
-        for _id in self.grid_ids:
-            fs_proc_id = _id.replace('A','').lower()
-            grid_ids_to_proc[fs_proc_id] = _id
-        print(grid_ids_to_proc)
-
-        fs_processed_proj = os.listdir(self.vars.fs_processed_path()['project'])
-        processed_proj = [i for i in fs_processed_proj if 'long' in i]
-        d = dict()
-        for _id_long in processed_proj:
-            _id_proc = _id_long.split('.')[0]
-            if _id_proc[:4] in grid_ids_to_proc:
-                d = self.populate_dict(d, grid_ids_to_proc[_id_proc[:4]], _id_proc)
-            else:
-                print('not in grid ids:', _id_proc)
-        return d
 
     def populate_dict(self, d, cle, val):
         if cle not in d:
@@ -104,3 +89,25 @@ class FSGLMrun:
         file_path_name = os.path.join(self.materials_DIR, self.project_vars["GLM_file_group"])
         print('creating file with groups {}'.format(file_path_name))
         self.tab.save_df(self.grid_df, file_path_name, sheet_name = 'grid')
+
+    # def get_fsprocessed_from_project(self):
+    #     '''extracting processed ids from the "Brain_training" folder
+    #         script not used, because multiple ids are missing, and other ids
+    #         are not present in the main grid file.
+    #     '''
+    #     grid_ids_to_proc = {}
+    #     for _id in self.grid_ids:
+    #         fs_proc_id = _id.replace('A','').lower()
+    #         grid_ids_to_proc[fs_proc_id] = _id
+    #     print(grid_ids_to_proc)
+
+    #     fs_processed_proj = os.listdir(self.vars.fs_processed_path()['project'])
+    #     processed_proj = [i for i in fs_processed_proj if 'long' in i]
+    #     d = dict()
+    #     for _id_long in processed_proj:
+    #         _id_proc = _id_long.split('.')[0]
+    #         if _id_proc[:4] in grid_ids_to_proc:
+    #             d = self.populate_dict(d, grid_ids_to_proc[_id_proc[:4]], _id_proc)
+    #         else:
+    #             print('not in grid ids:', _id_proc)
+    #     return d
