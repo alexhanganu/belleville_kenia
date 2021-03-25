@@ -49,7 +49,8 @@ class FSGLMrun:
         '''
         ids_fs_grid = dict()
         self.grid_ids = self.grid_df[self.files['grid']['ids']].tolist()
-        print(self.grid_df['wholeBrainstem_Brainstem'])
+        ROI_grid = self.grid_df['wholeBrainstem_Brainstem'].tolist()
+        ROI_processed = self.get_ROIs_ids()
         # fs_proc_proc = self.get_fs_processed_processed()
         # for _id in self.grid_ids:
         #     fs_proc_id = _id.replace('A','').lower()
@@ -61,6 +62,9 @@ class FSGLMrun:
             # d = self.populate_dict(d, i, proc_id)
         # print(ids_fs_grid)
 
+    def get_ROIs_ids(self):
+        d = dict()
+        return d
 
     def get_fs_processed_processed(self):
         '''extracting processed ids from the main processed folder
