@@ -49,9 +49,9 @@ class FSGLMrun:
         '''
         ids_fs_grid = dict()
         self.grid_ids = self.grid_df[self.files['grid']['ids']].tolist()
-        ROI_grid = self.grid_df['wholeBrainstem_Brainstem'].tolist()
+        ROI_grid = self.grid_df[self.get_ROI()['nimb_ROI']].tolist()
         ROI_processed = self.get_ROIs_ids()
-        # fs_proc_proc = self.get_fs_processed_processed()
+        # fs_processed = self.get_fs_processed_processed()
         # for _id in self.grid_ids:
         #     fs_proc_id = _id.replace('A','').lower()
         #     if fs_proc_id in fs_processed:
@@ -63,8 +63,26 @@ class FSGLMrun:
         # print(ids_fs_grid)
 
     def get_ROIs_ids(self):
+        fs_processed = self.get_fs_processed_processed()
+        for _id in list(fs_processed.keys())[:3]:
+            for proc_id in fs_processed[_id]:
+                stats_roi = (os.path.join(self.vars.fs_processed_path()['processed'], proc_id, "mri", 'brainstemSsVolumes.v10.txt'))
+                if not os.path.exists(stats_roi):
+                    print(proc_id)
+                else:
+                    content = open(stats_roi, 'r').readlines()
+                    for ROI in content:
+                        ROI_name = ROI.split(' ')[0]
+                        if ROI_name == self.get_ROI()['FS_ROI']:
+                            ROI_processed = float(ROI.split(' ')[-1].strip('\n'))
+                            print(ROI_processed)
+
+
         d = dict()
         return d
+
+    def get_ROI(self):
+        return {'nimb_ROI': 'wholeBrainstem_Brainstem', 'FS_ROI': 'Whole_brainstem'}
 
     def get_fs_processed_processed(self):
         '''extracting processed ids from the main processed folder
@@ -76,7 +94,7 @@ class FSGLMrun:
             for i in fs_processed:
                 if _id in i:
                     d = self.populate_dict(d, _id, i)
-        print(d)
+        # print(d)
         return d
 
 
@@ -86,7 +104,6 @@ class FSGLMrun:
         else:
             if not val.endswith('.mat'):
                 d[cle].append(val)
-        print(d)
         return d
 
     def create_data_file(self):
