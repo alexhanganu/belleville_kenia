@@ -64,22 +64,23 @@ class FSGLMrun:
 
     def get_ROIs_ids(self):
         fs_processed = self.get_fs_processed_processed()
+        sats_file = 'brainstemSsVolumes.v10.txt'
+        proc_id_all_rois = dict()
         for _id in list(fs_processed.keys())[:3]:
             for proc_id in fs_processed[_id]:
-                stats_roi = (os.path.join(self.vars.fs_processed_path()['processed'], proc_id, "mri", 'brainstemSsVolumes.v10.txt'))
+                stats_roi = (os.path.join(self.vars.fs_processed_path()['processed'], proc_id, "mri", sats_file))
                 if not os.path.exists(stats_roi):
-                    print(proc_id)
+                    print(proc_id, ' NO file ', sats_file)
                 else:
                     content = open(stats_roi, 'r').readlines()
                     for ROI in content:
                         ROI_name = ROI.split(' ')[0]
                         if ROI_name == self.get_ROI()['FS_ROI']:
                             ROI_processed = float(ROI.split(' ')[-1].strip('\n'))
-                            print(ROI_processed)
+                            proc_id_all_rois[proc_id] = ROI_processed
+        print(proc_id_all_rois)
 
-
-        d = dict()
-        return d
+        return proc_id_all_rois
 
     def get_ROI(self):
         return {'nimb_ROI': 'wholeBrainstem_Brainstem', 'FS_ROI': 'Whole_brainstem'}
