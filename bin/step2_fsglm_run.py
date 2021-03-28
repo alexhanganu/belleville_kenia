@@ -51,6 +51,9 @@ class FSGLMrun:
         self.grid_ids = self.grid_df[self.files['grid']['ids']].tolist()
         ROI_grid = self.grid_df[self.get_ROI()['nimb_ROI']].tolist()
         ROI_processed = self.get_ROIs_ids()
+        for _id in list(fs_processed.keys())[:3]:
+            print(_id, )
+
         # fs_processed = self.get_fs_processed_processed()
         # for _id in self.grid_ids:
         #     fs_proc_id = _id.replace('A','').lower()
@@ -63,8 +66,8 @@ class FSGLMrun:
         # print(ids_fs_grid)
 
     def get_ROIs_ids(self):
-        fs_processed = self.get_fs_processed_processed()
-        sats_file = 'brainstemSsVolumes.v10.txt'
+        _id_fsproc = self.get_fs_processed_processed()
+        sats_file = self.get_ROI()['sats_file']
         proc_id_all_rois = dict()
         for _id in list(fs_processed.keys())[:3]:
             for proc_id in fs_processed[_id]:
@@ -79,24 +82,25 @@ class FSGLMrun:
                             ROI_processed = float(ROI.split(' ')[-1].strip('\n'))
                             proc_id_all_rois[proc_id] = ROI_processed
         print(proc_id_all_rois)
-
         return proc_id_all_rois
 
     def get_ROI(self):
-        return {'nimb_ROI': 'wholeBrainstem_Brainstem', 'FS_ROI': 'Whole_brainstem'}
+        return {'nimb_ROI' : 'wholeBrainstem_Brainstem',
+                'FS_ROI'   : 'Whole_brainstem',
+                'sats_file': 'brainstemSsVolumes.v10.txt'}
 
     def get_fs_processed_processed(self):
         '''extracting processed ids from the main processed folder
             based on grid_ids
         '''
-        d = dict()
-        fs_processed = os.listdir(self.vars.fs_processed_path()['processed'])
+        _id_fsproc = dict()
+        fs_processed_all = os.listdir(self.vars.fs_processed_path()['processed'])
         for _id in self.grid_ids:
-            for i in fs_processed:
+            for i in fs_processed_all:
                 if _id in i:
-                    d = self.populate_dict(d, _id, i)
-        # print(d)
-        return d
+                    _id_fsproc = self.populate_dict(_id_fsproc, _id, i)
+        # print(_id_fsproc)
+        return _id_fsproc
 
 
     def populate_dict(self, d, cle, val):
