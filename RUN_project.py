@@ -24,5 +24,6 @@ if STEP0_make_groups:
     MakeGroupFile(project_vars, utils, Table, Preprocess)
 
 if STEP1_run_fslgm:
+	FS_SUBJECTS_DIR = all_vars.location_vars['local']['FREESURFER']['FS_SUBJECTS_DIR']
 	from bin.step2_fsglm_run import FSGLMrun
-	FSGLMrun(project_vars, utils, Table, Preprocess, manage_archive)
+	FSGLMrun(project_vars, utils, Table, Preprocess, manage_archive, FS_SUBJECTS_DIR)

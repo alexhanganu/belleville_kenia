@@ -18,9 +18,10 @@ import os
 from .vars import VARS
 
 class FSGLMrun:
-    def __init__(self, project_vars, utils, Table, Preprocess, manage_archive):
+    def __init__(self, project_vars, utils, Table, Preprocess, manage_archive, FS_SUBJECTS_DIR):
         self.tab           = Table()
         self.preproc       = Preprocess()
+        self.SUBJECTS_DIR  = FS_SUBJECTS_DIR
         self.Zip           = manage_archive.ZipArchiveManagement
         self.project_vars  = project_vars
         self.materials_DIR = self.project_vars["materials_DIR"][1]
@@ -73,32 +74,6 @@ class FSGLMrun:
             # d = self.populate_dict(d, i, proc_id)
         # print(ids_fs_grid)
 
-    def get_ROIs_ids(self):
-        _id_fsproc = self.extract_fs_proc()
-        # stats_file = self.get_ROI()['stats_file']
-        # _id_fsproc_roival = dict()
-
-        # for _id in list(_id_fsproc.keys()):#[:3]:
-        #     _id_fsproc_roival[_id] = dict()
-        #     for proc_id in _id_fsproc[_id]:
-        #         stats_roi = (os.path.join(self.vars.fs_processed_path(),
-        #                                   proc_id, "mri", stats_file))
-        #         if os.path.exists(stats_roi):
-        #             content = open(stats_roi, 'r').readlines()
-        #             for ROI in content:
-        #                 if ROI.split(' ')[0] == self.get_ROI()['FS_ROI']:
-        #                     ROI_val = float(ROI.split(' ')[-1].strip('\n'))
-        #                     _id_fsproc_roival[_id][proc_id] = ROI_val
-        #         else:
-        #             pass
-        #             # print(proc_id, ' NO file ', stats_file)
-        # # print(_id_fsproc_roival)
-        # return _id_fsproc_roival
-
-    def get_ROI(self):#medulla_Brainstem', 'pons_Brainstem', 'scp_Brainstem'
-        return {'nimb_ROI' : 'wholeBrainstem_Brainstem',
-                'FS_ROI'   : 'Whole_brainstem',
-                'stats_file': 'brainstemSsVolumes.v10.txt'}
 
     def extract_fs_proc(self):
         '''fs processed are zipped
@@ -112,6 +87,37 @@ class FSGLMrun:
             print(project_vars)
         return True
 
+    def get_ROIs_ids(self):
+        ready, _id_fsproc = self.get_fs_processed()
+        if not ready:
+            pass
+        else:
+            print()
+            stats_file = self.get_ROI()['stats_file']
+            _id_fsproc_roival = dict()
+            for _id in list(_id_fsproc.keys())[:3]:
+                _id_fsproc_roival[_id] = dict()
+                for proc_id in _id_fsproc[_id]:
+                    zip_file_path = (os.path.join(self.vars.fs_processed_path(), proc_id))
+                    dirs2xtrct = [os.path.join("mri", stats_file)]
+                    self.Zip(zip_file_path, path2xtrct = self.SUBJECTS_DIR, dirs2xtrct = dirs2xtrct)
+                    stats_f = (os.path.join(self.SUBJECTS_DIR, proc_id, dirs2xtrct[0]))
+                    if os.path.exists(stats_f):
+                        content = open(stats_f, 'r').readlines()
+                        for ROI in content:
+                            if ROI.split(' ')[0] == self.get_ROI()['FS_ROI']:
+                                ROI_val = float(ROI.split(' ')[-1].strip('\n'))
+                                _id_fsproc_roival[_id][proc_id] = ROI_val
+                    else:
+                        print(proc_id, ' NO file ', stats_file)
+                        pass
+        print(_id_fsproc_roival)
+        return _id_fsproc_roival
+
+    def get_ROI(self):#medulla_Brainstem', 'pons_Brainstem', 'scp_Brainstem'
+        return {'nimb_ROI' : 'wholeBrainstem_Brainstem',
+                'FS_ROI'   : 'Whole_brainstem',
+                'stats_file': 'brainstemSsVolumes.v10.txt'}
 
     def get_fs_processed(self):
         '''use ids from the grid_ids
