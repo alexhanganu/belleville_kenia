@@ -18,9 +18,10 @@ import os
 from .vars import VARS
 
 class FSGLMrun:
-    def __init__(self, project_vars, utils, Table, Preprocess):
+    def __init__(self, project_vars, utils, Table, Preprocess, manage_archive):
         self.tab           = Table()
         self.preproc       = Preprocess()
+        self.Zip           = manage_archive.ZipArchiveManagement
         self.project_vars  = project_vars
         self.materials_DIR = self.project_vars["materials_DIR"][1]
         self.vars          = VARS(project_vars)
@@ -49,10 +50,8 @@ class FSGLMrun:
         '''
         # ids_fs_grid = dict()
         self.grid_ids = self.grid_df[self.files['grid']['ids']].tolist()
-        ROI_grid = self.grid_df[self.get_ROI()['nimb_ROI']].tolist()
-        print(self.grid_ids, ROI_grid)
-        # # print(sorted(ROI_grid))
-        # _id_fsproc_roival = self.get_ROIs_ids()
+        # ROI_grid = self.grid_df[self.get_ROI()['nimb_ROI']].tolist()
+        _id_fsproc_roival = self.get_ROIs_ids()
         # for _id in list(_id_fsproc_roival.keys()):#[:3]:
         #     for proc_id in _id_fsproc_roival[_id]:
         #         proc_val = _id_fsproc_roival[_id][proc_id]
@@ -63,7 +62,7 @@ class FSGLMrun:
         #             print('NO', proc_val)
 
 
-        # fs_processed = self.get_fs_processed_processed()
+        # fs_processed = self.get_fs_processed()
         # for _id in self.grid_ids:
         #     fs_proc_id = _id.replace('A','').lower()
         #     if fs_proc_id in fs_processed:
@@ -75,58 +74,91 @@ class FSGLMrun:
         # print(ids_fs_grid)
 
     def get_ROIs_ids(self):
-        _id_fsproc = self.get_fs_processed_processed()
-        stats_file = self.get_ROI()['stats_file']
-        _id_fsproc_roival = dict()
+        _id_fsproc = self.extract_fs_proc()
+        # stats_file = self.get_ROI()['stats_file']
+        # _id_fsproc_roival = dict()
 
-        for _id in list(_id_fsproc.keys()):#[:3]:
-            _id_fsproc_roival[_id] = dict()
-            for proc_id in _id_fsproc[_id]:
-                stats_roi = (os.path.join(self.vars.fs_processed_path()
-                                          proc_id, "mri", stats_file))
-                if os.path.exists(stats_roi):
-                    content = open(stats_roi, 'r').readlines()
-                    for ROI in content:
-                        if ROI.split(' ')[0] == self.get_ROI()['FS_ROI']:
-                            ROI_val = float(ROI.split(' ')[-1].strip('\n'))
-                            _id_fsproc_roival[_id][proc_id] = ROI_val
-                else:
-                    pass
-                    # print(proc_id, ' NO file ', stats_file)
-        # print(_id_fsproc_roival)
-        return _id_fsproc_roival
+        # for _id in list(_id_fsproc.keys()):#[:3]:
+        #     _id_fsproc_roival[_id] = dict()
+        #     for proc_id in _id_fsproc[_id]:
+        #         stats_roi = (os.path.join(self.vars.fs_processed_path(),
+        #                                   proc_id, "mri", stats_file))
+        #         if os.path.exists(stats_roi):
+        #             content = open(stats_roi, 'r').readlines()
+        #             for ROI in content:
+        #                 if ROI.split(' ')[0] == self.get_ROI()['FS_ROI']:
+        #                     ROI_val = float(ROI.split(' ')[-1].strip('\n'))
+        #                     _id_fsproc_roival[_id][proc_id] = ROI_val
+        #         else:
+        #             pass
+        #             # print(proc_id, ' NO file ', stats_file)
+        # # print(_id_fsproc_roival)
+        # return _id_fsproc_roival
 
     def get_ROI(self):#medulla_Brainstem', 'pons_Brainstem', 'scp_Brainstem'
         return {'nimb_ROI' : 'wholeBrainstem_Brainstem',
                 'FS_ROI'   : 'Whole_brainstem',
                 'stats_file': 'brainstemSsVolumes.v10.txt'}
 
-    def get_fs_processed_processed(self):
-        '''extracting processed ids from the main processed folder
-            based on grid_ids
+    def extract_fs_proc(self):
+        '''fs processed are zipped
+            this will unzip the surf and label folders
+        '''
+        ready, _id_fsproc = self.get_fs_processed()
+        if ready:
+            for _id_grid in _id_fsproc:
+                print(_id_fsproc[_id_grid])
+            print('ready')
+            print(project_vars)
+        return True
+
+
+    def get_fs_processed(self):
+        '''use ids from the grid_ids
+           extract processed ids from the FreeSurfer processed folder
+            
         '''
         _id_fsproc = dict()
         fs_processed_all = os.listdir(self.vars.fs_processed_path())
+        # print(fs_processed_all)
         for _id in self.grid_ids:
             for i in fs_processed_all:
                 if _id in i:
                     _id_fsproc = self.populate_dict(_id_fsproc, _id, i)
-        # print(_id_fsproc)
-        return _id_fsproc
+        missing = [i for i in _id_fsproc if not _id_fsproc[i]]
+        if missing:
+            print('missing IDs:', len(missing), missing)
+            return False, missing
+        else:
+            return True, _id_fsproc
 
 
     def populate_dict(self, d, cle, val):
         if cle not in d:
             d[cle] = list()
-        else:
-            if not val.endswith('.mat'):
-                d[cle].append(val)
+        if val not in d[cle]:
+            d[cle].append(val)
         return d
 
     def create_data_file(self):
         file_path_name = os.path.join(self.materials_DIR, self.project_vars["GLM_file_group"])
         print('creating file with groups {}'.format(file_path_name))
         self.tab.save_df(self.grid_df, file_path_name, sheet_name = 'grid')
+
+    # def get_fs_processed(self):
+    #     '''extracting processed ids from the main processed folder
+    #         based on grid_ids
+    #         script is not used because it was written on the wrong dataset
+    #     '''
+    #     _id_fsproc = dict()
+    #     fs_processed_all = os.listdir(self.vars.fs_processed_path())
+    #     for _id in self.grid_ids:
+    #         for i in fs_processed_all:
+    #             if _id in i:
+    #                 _id_fsproc = self.populate_dict(_id_fsproc, _id, i)
+    #     # print(_id_fsproc)
+    #     return _id_fsproc
+
 
     # def get_fsprocessed_from_project(self):
     #     '''extracting processed ids from the "Brain_training" folder
