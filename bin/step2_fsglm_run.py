@@ -47,19 +47,20 @@ class FSGLMrun:
             chk the values with the values present in the grid file
             retain the processed ids based on those values
         '''
-        ids_fs_grid = dict()
+        # ids_fs_grid = dict()
         self.grid_ids = self.grid_df[self.files['grid']['ids']].tolist()
         ROI_grid = self.grid_df[self.get_ROI()['nimb_ROI']].tolist()
-        print(sorted(ROI_grid))
-        _id_fsproc_roival = self.get_ROIs_ids()
-        for _id in list(_id_fsproc_roival.keys())[:3]:
-            for proc_id in _id_fsproc_roival[_id]:
-                proc_val = _id_fsproc_roival[_id][proc_id]
-                print(_id, _id_fsproc_roival[_id], proc_val)
-                if proc_val in ROI_grid:
-                    print('yes', proc_val)
-                else:
-                    print('NO', proc_val)
+        print(self.grid_ids, ROI_grid)
+        # # print(sorted(ROI_grid))
+        # _id_fsproc_roival = self.get_ROIs_ids()
+        # for _id in list(_id_fsproc_roival.keys()):#[:3]:
+        #     for proc_id in _id_fsproc_roival[_id]:
+        #         proc_val = _id_fsproc_roival[_id][proc_id]
+        #         # print(_id, _id_fsproc_roival[_id], proc_val)
+        #         if proc_val in ROI_grid:
+        #             print('yes', proc_val)
+        #         else:
+        #             print('NO', proc_val)
 
 
         # fs_processed = self.get_fs_processed_processed()
@@ -78,10 +79,10 @@ class FSGLMrun:
         stats_file = self.get_ROI()['stats_file']
         _id_fsproc_roival = dict()
 
-        for _id in list(_id_fsproc.keys())[:3]:
+        for _id in list(_id_fsproc.keys()):#[:3]:
             _id_fsproc_roival[_id] = dict()
             for proc_id in _id_fsproc[_id]:
-                stats_roi = (os.path.join(self.vars.fs_processed_path()['processed'],
+                stats_roi = (os.path.join(self.vars.fs_processed_path()
                                           proc_id, "mri", stats_file))
                 if os.path.exists(stats_roi):
                     content = open(stats_roi, 'r').readlines()
@@ -90,11 +91,12 @@ class FSGLMrun:
                             ROI_val = float(ROI.split(' ')[-1].strip('\n'))
                             _id_fsproc_roival[_id][proc_id] = ROI_val
                 else:
-                    print(proc_id, ' NO file ', stats_file)
+                    pass
+                    # print(proc_id, ' NO file ', stats_file)
         # print(_id_fsproc_roival)
         return _id_fsproc_roival
 
-    def get_ROI(self):
+    def get_ROI(self):#medulla_Brainstem', 'pons_Brainstem', 'scp_Brainstem'
         return {'nimb_ROI' : 'wholeBrainstem_Brainstem',
                 'FS_ROI'   : 'Whole_brainstem',
                 'stats_file': 'brainstemSsVolumes.v10.txt'}
@@ -104,7 +106,7 @@ class FSGLMrun:
             based on grid_ids
         '''
         _id_fsproc = dict()
-        fs_processed_all = os.listdir(self.vars.fs_processed_path()['processed'])
+        fs_processed_all = os.listdir(self.vars.fs_processed_path())
         for _id in self.grid_ids:
             for i in fs_processed_all:
                 if _id in i:
