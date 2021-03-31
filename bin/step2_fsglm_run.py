@@ -18,16 +18,20 @@ import os
 from .vars import VARS
 
 class FSGLMrun:
-    def __init__(self, project_vars, utils, Table, Preprocess, manage_archive, FS_SUBJECTS_DIR):
-        self.tab           = Table()
-        self.preproc       = Preprocess()
-        self.SUBJECTS_DIR  = FS_SUBJECTS_DIR
-        self.Zip           = manage_archive.ZipArchiveManagement
-        self.project_vars  = project_vars
-        self.materials_DIR = self.project_vars["materials_DIR"][1]
-        self.vars          = VARS(project_vars)
-        self._id           = project_vars['id_col']
-        self.files         = self.vars.f_source()
+    def __init__(self, project_vars,
+                utils, Table, Preprocess,
+                manage_archive, FS_SUBJECTS_DIR,
+                all_data):
+        self.tab            = Table()
+        self.preproc        = Preprocess()
+        self.SUBJECTS_DIR   = FS_SUBJECTS_DIR
+        self.Zip            = manage_archive.ZipArchiveManagement
+        self.fs_definitions = all_data
+        self.project_vars   = project_vars
+        self.materials_DIR  = self.project_vars["materials_DIR"][1]
+        self.vars           = VARS(project_vars)
+        self._id            = project_vars['id_col']
+        self.files          = self.vars.f_source()
         self.run()
 
     def run(self):
@@ -115,6 +119,7 @@ class FSGLMrun:
         return _id_fsproc_roival
 
     def get_ROI(self):#medulla_Brainstem', 'pons_Brainstem', 'scp_Brainstem'
+        print(self.fs_definitions)
         return {'nimb_ROI' : 'wholeBrainstem_Brainstem',
                 'FS_ROI'   : 'Whole_brainstem',
                 'stats_file': 'brainstemSsVolumes.v10.txt'}
