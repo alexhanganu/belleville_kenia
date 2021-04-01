@@ -55,12 +55,11 @@ class FSGLMrun:
         '''
         # ids_fs_grid = dict()
         self.grid_ids = self.grid_df[self.files['grid']['ids']].tolist()
-        # ROI_grid = self.grid_df[self.get_ROI()['nimb_ROI']].tolist()
-        _id_fsproc_roival = self.get_ROIs_ids()
-        # for _id in list(_id_fsproc_roival.keys()):#[:3]:
-        #     for proc_id in _id_fsproc_roival[_id]:
-        #         proc_val = _id_fsproc_roival[_id][proc_id]
-        #         # print(_id, _id_fsproc_roival[_id], proc_val)
+        _id_fsproc = self.extract_fs_proc()
+        # for _id in list(_id_fsproc.keys()):#[:3]:
+        #     for proc_id in _id_fsproc[_id]:
+        #         proc_val = _id_fsproc[_id][proc_id]
+        #         # print(_id, _id_fsproc[_id], proc_val)
         #         if proc_val in ROI_grid:
         #             print('yes', proc_val)
         #         else:
@@ -83,58 +82,33 @@ class FSGLMrun:
         '''fs processed are zipped
             this will unzip the surf and label folders
         '''
-        ready, _id_fsproc = self.get_fs_processed()
+        ready, _ids_fsproc = self.get_fs_processed()
         if ready:
-            for _id_grid in _id_fsproc:
-                print(_id_fsproc[_id_grid])
-            print('ready')
-            print(project_vars)
+            for _id_zipped in [i[0] for i in _ids_fsproc.values()]:
+                _id_in_subj_dir = (os.path.join(self.SUBJECTS_DIR, _id_zipped.replace('.zip','')))
+                if not os.path.exists(_id_in_subj_dir):
+                    print(_id_zipped,' missing')
+                    zip_file_path = (os.path.join(self.vars.fs_processed_path(), _id_zipped))
+                    dirs2xtrct = ['surf', 'label']
+                    self.Zip(zip_file_path, path2xtrct = self.SUBJECTS_DIR, dirs2xtrct = dirs2xtrct)
+                    if not os.path.exists(_id_in_subj_dir):
+                        print(_id_zipped,' not extracted')
+                else:
+                    print(_id_zipped,' ready for FS glm')
         return True
 
-    def get_ROIs_ids(self):
-        ready, _id_fsproc = self.get_fs_processed()
-        if not ready:
-            pass
-        else:
-            print()
-            stats_file = self.get_ROI()['stats_file']
-            _id_fsproc_roival = dict()
-            for _id in list(_id_fsproc.keys())[:3]:
-                _id_fsproc_roival[_id] = dict()
-                for proc_id in _id_fsproc[_id]:
-                    zip_file_path = (os.path.join(self.vars.fs_processed_path(), proc_id))
-                    dirs2xtrct = [os.path.join("mri", stats_file)]
-                    self.Zip(zip_file_path, path2xtrct = self.SUBJECTS_DIR, dirs2xtrct = dirs2xtrct)
-                    stats_f = (os.path.join(self.SUBJECTS_DIR, proc_id, dirs2xtrct[0]))
-                    if os.path.exists(stats_f):
-                        content = open(stats_f, 'r').readlines()
-                        for ROI in content:
-                            if ROI.split(' ')[0] == self.get_ROI()['FS_ROI']:
-                                ROI_val = float(ROI.split(' ')[-1].strip('\n'))
-                                _id_fsproc_roival[_id][proc_id] = ROI_val
-                    else:
-                        print(proc_id, ' NO file ', stats_file)
-                        pass
-        print(_id_fsproc_roival)
-        return _id_fsproc_roival
-
-    def get_ROI(self):#medulla_Brainstem', 'pons_Brainstem', 'scp_Brainstem'
-        print(self.fs_definitions)
-        return {'nimb_ROI' : 'wholeBrainstem_Brainstem',
-                'FS_ROI'   : 'Whole_brainstem',
-                'stats_file': 'brainstemSsVolumes.v10.txt'}
 
     def get_fs_processed(self):
         '''use ids from the grid_ids
            extract processed ids from the FreeSurfer processed folder
-            
+           parameters present in the name: presence of WM, absence of T2, absence of T1B
         '''
         _id_fsproc = dict()
         fs_processed_all = os.listdir(self.vars.fs_processed_path())
         # print(fs_processed_all)
         for _id in self.grid_ids:
             for i in fs_processed_all:
-                if _id in i:
+                if _id in i and 'WM' in i and 'T2' not in i and 'T1B' not in i:
                     _id_fsproc = self.populate_dict(_id_fsproc, _id, i)
         missing = [i for i in _id_fsproc if not _id_fsproc[i]]
         if missing:
@@ -155,6 +129,35 @@ class FSGLMrun:
         file_path_name = os.path.join(self.materials_DIR, self.project_vars["GLM_file_group"])
         print('creating file with groups {}'.format(file_path_name))
         self.tab.save_df(self.grid_df, file_path_name, sheet_name = 'grid')
+
+
+    # def get_ROI(self):
+    #     '''written with the intent to search for the right ids based on 
+    #         the values of ROIs. Now ids are taken based on present of 'WM' in their names
+    #         Script is NOT needed anymore
+    #     '''
+    #     ROIs = {'nimb_ROI' : 'wholeBrainstem_Brainstem',
+    #             'FS_ROI'   : 'Whole_brainstem',
+    #             'stats_file': 'brainstemSsVolumes.v10.txt'}
+    #             #     stats_file = ROIs['stats_file']
+    #         _id_fsproc_roival = dict()
+    #         for _id in list(_id_fsproc.keys())[:3]:
+    #             _id_fsproc_roival[_id] = dict()
+    #             for proc_id in _id_fsproc[_id]:
+    #                 zip_file_path = (os.path.join(self.vars.fs_processed_path(), proc_id))
+    #                 dirs2xtrct = [os.path.join("mri", stats_file)]
+    #                 self.Zip(zip_file_path, path2xtrct = self.SUBJECTS_DIR, dirs2xtrct = dirs2xtrct)
+    #                 stats_f = (os.path.join(self.SUBJECTS_DIR, proc_id, dirs2xtrct[0]))
+    #                 if os.path.exists(stats_f):
+    #                     content = open(stats_f, 'r').readlines()
+    #                     for ROI in content:
+    #                         if ROI.split(' ')[0] == ROIs['FS_ROI']:
+    #                             ROI_val = float(ROI.split(' ')[-1].strip('\n'))
+    #                             _id_fsproc_roival[_id][proc_id] = ROI_val
+    #                 else:
+    #                     print(proc_id, ' NO file ', stats_file)
+    #                     pass
+    #     print(_id_fsproc_roival)
 
     # def get_fs_processed(self):
     #     '''extracting processed ids from the main processed folder
