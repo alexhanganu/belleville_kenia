@@ -84,17 +84,24 @@ class FSGLMrun:
         '''
         ready, _ids_fsproc = self.get_fs_processed()
         if ready:
-            for _id_zipped in [i[0] for i in _ids_fsproc.values()]:
-                _id_in_subj_dir = (os.path.join(self.SUBJECTS_DIR, _id_zipped.replace('.zip','')))
-                if not os.path.exists(_id_in_subj_dir):
-                    print(_id_zipped,' missing')
-                    zip_file_path = (os.path.join(self.vars.fs_processed_path(), _id_zipped))
-                    dirs2xtrct = ['surf', 'label']
-                    self.Zip(zip_file_path, path2xtrct = self.SUBJECTS_DIR, dirs2xtrct = dirs2xtrct)
-                    if not os.path.exists(_id_in_subj_dir):
-                        print(_id_zipped,' not extracted')
-                else:
-                    print(_id_zipped,' ready for FS glm')
+            d_ids = {self.files['grid']['ids']: [i for i in list(_ids_fsproc.keys())],
+                     'fs_id': [i[0].replace('.zip','') for i in list(_ids_fsproc.values())]}
+            fs_proc_df = self.tab.create_df_from_dict(d_ids)
+            
+            grid_df_fs = self.tab.join_dfs(self.grid_df, fs_proc_df, how='outer')
+
+            print(grid_df_fs)
+            # for _id_zipped in [i[0] for i in _ids_fsproc.values()]:
+            #     _id_in_subj_dir = (os.path.join(self.SUBJECTS_DIR, _id_zipped.replace('.zip','')))
+            #     if not os.path.exists(_id_in_subj_dir):
+            #         print(_id_zipped,' missing')
+            #         zip_file_path = (os.path.join(self.vars.fs_processed_path(), _id_zipped))
+            #         dirs2xtrct = ['surf', 'label']
+            #         self.Zip(zip_file_path, path2xtrct = self.SUBJECTS_DIR, dirs2xtrct = dirs2xtrct)
+            #         if not os.path.exists(_id_in_subj_dir):
+            #             print(_id_zipped,' not extracted')
+            #     else:
+            #         print(_id_zipped,' ready for FS glm')
         return True
 
 
