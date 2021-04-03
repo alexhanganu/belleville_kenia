@@ -7,7 +7,6 @@ project = "belleville_kenia"
 STEP0_make_groups        = False
 STEP1_run_fslgm          = True
 
-from os import path, system
 from bin import nimb_link
 NIMB_HOME = nimb_link.link_with_nimb()
 from setup.get_vars import Get_Vars, SetProject
@@ -27,4 +26,11 @@ if STEP0_make_groups:
 if STEP1_run_fslgm:
 	FS_SUBJECTS_DIR = all_vars.location_vars['local']['FREESURFER']['FS_SUBJECTS_DIR']
 	from bin.step2_fsglm_run import FSGLMrun
-	FSGLMrun(project_vars, utils, Table, Preprocess, manage_archive, FS_SUBJECTS_DIR, all_data)
+	ready = FSGLMrun(project_vars, utils, Table, Preprocess, manage_archive, FS_SUBJECTS_DIR, all_data)
+	if ready:
+		print('ready for FreeSurfer GLM')
+		import os
+		os.chdir(NIMB_HOME)
+		os.system('python3 nimb.py -process run-stats -project {}'.format(project))
+	else:
+		print('file for GLM is not ready')

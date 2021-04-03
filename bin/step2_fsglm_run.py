@@ -32,76 +32,44 @@ class FSGLMrun:
         self.vars           = VARS(project_vars)
         self._id            = project_vars['id_col']
         self.files          = self.vars.f_source()
+        self.col_fs_proc    = 'fs_id'
         self.run()
 
     def run(self):
-        self.grid_df = self.tab.get_df(self.files['grid']['file'])
-        ids_fs_grid  = self.find_correspondance()
+        grid_df = self.tab.get_df(os.path.join(self.materials_DIR, self.project_vars["fname_groups"]))
 
-        # print(ids_fs_grid)
-
-        # self.grid_df = self.tab.join_dfs(df, df_fs, how='outer')
-        # self.groups = self.preproc.get_groups(self.grid_df[self.project_vars["group_col"]].tolist())
-        # self.grid_df.index.name = self._id
-        # self.populate_missing_data()
-        # self.create_data_file()
-
-    def find_correspondance(self):
-        '''ids in the grid are different from ids that were processed with freesurfer
-            extract all processed ids that match the grid ids
-            for each ids extract the values of whole hippocampus
-            chk the values with the values present in the grid file
-            retain the processed ids based on those values
-        '''
-        # ids_fs_grid = dict()
-        self.grid_ids = self.grid_df[self.files['grid']['ids']].tolist()
-        _id_fsproc = self.extract_fs_proc()
-        # for _id in list(_id_fsproc.keys()):#[:3]:
-        #     for proc_id in _id_fsproc[_id]:
-        #         proc_val = _id_fsproc[_id][proc_id]
-        #         # print(_id, _id_fsproc[_id], proc_val)
-        #         if proc_val in ROI_grid:
-        #             print('yes', proc_val)
-        #         else:
-        #             print('NO', proc_val)
-
-
-        # fs_processed = self.get_fs_processed()
-        # for _id in self.grid_ids:
-        #     fs_proc_id = _id.replace('A','').lower()
-        #     if fs_proc_id in fs_processed:
-        #         ids_fs_grid[fs_proc_id] = fs_processed[fs_proc_id]
-        #     else:
-        #         ids_fs_grid[fs_proc_id] = list()
-        #         miss.append(fs_proc_id)
-            # d = self.populate_dict(d, i, proc_id)
-        # print(ids_fs_grid)
-
+        if self.col_fs_proc in grid_df.columns:
+            return True
+        else:
+            self.grid_df = self.tab.get_df(self.files['grid']['file'])
+            ready, _ids_fsproc = self.get_fs_processed()
+            if ready:
+                d_ids = {self.files['grid']['ids']: [i for i in list(_ids_fsproc.keys())],
+                         self.col_fs_proc: [i[0].replace('.zip','') for i in list(_ids_fsproc.values())]}
+                fs_proc_df = self.tab.create_df_from_dict(d_ids)
+                fs_proc_df = self.tab.change_index(fs_proc_df, self.files['grid']['ids'])
+                grid_fs_df_pre = self.tab.change_index(self.grid_df, self.files['grid']['ids'])
+                self.grid_df = self.tab.join_dfs(grid_fs_df_pre, fs_proc_df, how='outer')
+                # _id_fsproc = self.extract_fs_proc()
+                return self.create_data_file()
+            else:
+                return False
 
     def extract_fs_proc(self):
         '''fs processed are zipped
             this will unzip the surf and label folders
         '''
-        ready, _ids_fsproc = self.get_fs_processed()
-        if ready:
-            d_ids = {self.files['grid']['ids']: [i for i in list(_ids_fsproc.keys())],
-                     'fs_id': [i[0].replace('.zip','') for i in list(_ids_fsproc.values())]}
-            fs_proc_df = self.tab.create_df_from_dict(d_ids)
-            
-            grid_df_fs = self.tab.join_dfs(self.grid_df, fs_proc_df, how='outer')
-
-            print(grid_df_fs)
-            # for _id_zipped in [i[0] for i in _ids_fsproc.values()]:
-            #     _id_in_subj_dir = (os.path.join(self.SUBJECTS_DIR, _id_zipped.replace('.zip','')))
-            #     if not os.path.exists(_id_in_subj_dir):
-            #         print(_id_zipped,' missing')
-            #         zip_file_path = (os.path.join(self.vars.fs_processed_path(), _id_zipped))
-            #         dirs2xtrct = ['surf', 'label']
-            #         self.Zip(zip_file_path, path2xtrct = self.SUBJECTS_DIR, dirs2xtrct = dirs2xtrct)
-            #         if not os.path.exists(_id_in_subj_dir):
-            #             print(_id_zipped,' not extracted')
-            #     else:
-            #         print(_id_zipped,' ready for FS glm')
+        for _id_zipped in [i[0] for i in _ids_fsproc.values()]:
+            _id_in_subj_dir = (os.path.join(self.SUBJECTS_DIR, _id_zipped.replace('.zip','')))
+            if not os.path.exists(_id_in_subj_dir):
+                print(_id_zipped,' missing')
+                zip_file_path = (os.path.join(self.vars.fs_processed_path(), _id_zipped))
+                dirs2xtrct = ['surf', 'label']
+                self.Zip(zip_file_path, path2xtrct = self.SUBJECTS_DIR, dirs2xtrct = dirs2xtrct)
+                if not os.path.exists(_id_in_subj_dir):
+                    print(_id_zipped,' not extracted')
+            else:
+                print(_id_zipped,' ready for FS glm')
         return True
 
 
@@ -112,8 +80,8 @@ class FSGLMrun:
         '''
         _id_fsproc = dict()
         fs_processed_all = os.listdir(self.vars.fs_processed_path())
-        # print(fs_processed_all)
-        for _id in self.grid_ids:
+        grid_ids = self.grid_df[self.files['grid']['ids']].tolist()
+        for _id in grid_ids:
             for i in fs_processed_all:
                 if _id in i and 'WM' in i and 'T2' not in i and 'T1B' not in i:
                     _id_fsproc = self.populate_dict(_id_fsproc, _id, i)
@@ -133,9 +101,10 @@ class FSGLMrun:
         return d
 
     def create_data_file(self):
-        file_path_name = os.path.join(self.materials_DIR, self.project_vars["GLM_file_group"])
+        file_path_name = os.path.join(self.materials_DIR, self.project_vars["fname_groups"])
         print('creating file with groups {}'.format(file_path_name))
         self.tab.save_df(self.grid_df, file_path_name, sheet_name = 'grid')
+        return True
 
 
     # def get_ROI(self):
