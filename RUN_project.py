@@ -31,6 +31,6 @@ if STEP1_run_fslgm:
 		print('ready for FreeSurfer GLM')
 		import os
 		os.chdir(NIMB_HOME)
-		os.system('python3 nimb.py -process run-stats -project {}'.format(project))
+		os.system('python3 nimb.py -process fs-glm -project {}'.format(project))
 	else:
 		print('file for GLM is not ready')
