@@ -19,39 +19,50 @@ from .vars import VARS
 
 class FSGLMrun:
     def __init__(self, project_vars,
-                utils, Table, Preprocess,
-                manage_archive, FS_SUBJECTS_DIR,
-                all_data):
-        self.tab            = Table()
-        self.preproc        = Preprocess()
-        self.SUBJECTS_DIR   = FS_SUBJECTS_DIR
-        self.Zip            = manage_archive.ZipArchiveManagement
-        self.fs_definitions = all_data
-        self.project_vars   = project_vars
-        self.materials_DIR  = self.project_vars["materials_DIR"][1]
-        self.vars           = VARS(project_vars)
-        self._id            = project_vars['id_col']
-        self.files          = self.vars.f_source()
-        self.col_fs_proc    = 'fs_id'
+                local_vars,
+                save_json, Table,
+                manage_archive, FS_SUBJECTS_DIR):
+        self.tab             = Table()
+        self.SUBJECTS_DIR    = FS_SUBJECTS_DIR
+        self.Zip             = manage_archive.ZipArchiveManagement
+        self.project_vars    = project_vars
+        self.materials_DIR   = self.project_vars["materials_DIR"][1]
+        self.vars            = VARS(project_vars)
+        self._id             = project_vars['id_col']
+        self.files           = self.vars.f_source()
+        self.f_ids_proc_path = os.path.join(self.materials_DIR,
+                                local_vars["NIMB_PATHS"]['file_ids_processed'])
+        self.save_json       = save_json
         self.run()
 
     def run(self):
         grid_df = self.tab.get_df(os.path.join(self.materials_DIR, self.project_vars["fname_groups"]))
 
-        if self.col_fs_proc in grid_df.columns:
+        if os.path.exists(self.f_ids_proc_path):
             return True
         else:
             self.grid_df = self.tab.get_df(self.files['grid']['file'])
             ready, _ids_fsproc = self.get_fs_processed()
             if ready:
-                d_ids = {self.files['grid']['ids']: [i for i in list(_ids_fsproc.keys())],
-                         self.col_fs_proc: [i[0].replace('.zip','') for i in list(_ids_fsproc.values())]}
-                fs_proc_df = self.tab.create_df_from_dict(d_ids)
-                fs_proc_df = self.tab.change_index(fs_proc_df, self.files['grid']['ids'])
-                grid_fs_df_pre = self.tab.change_index(self.grid_df, self.files['grid']['ids'])
-                self.grid_df = self.tab.join_dfs(grid_fs_df_pre, fs_proc_df, how='outer')
+                from distribution.distribution_definitions import get_keys_processed
+                self.f_ids = dict()
+
+                for bids_id in [i for i in list(_ids_fsproc.keys())]:
+                    self.f_ids[bids_id] = dict()
+                    fs_key = get_keys_processed('fs')
+                    fs_id = _ids_fsproc[bids_id][0]
+                    if fs_id:
+                        self.f_ids[bids_id][fs_key] = fs_id
+                    else:
+                        self.f_ids[bids_id][fs_key] = ''
+                # d_ids = {self.files['grid']['ids']: [i for i in list(_ids_fsproc.keys())],
+                #          'freesurfer': [i[0].replace('.zip','') for i in list(_ids_fsproc.values())]}
+                # fs_proc_df = self.tab.create_df_from_dict(d_ids)
+                # fs_proc_df = self.tab.change_index(fs_proc_df, self.files['grid']['ids'])
+                # grid_fs_df_pre = self.tab.change_index(self.grid_df, self.files['grid']['ids'])
+                # self.f_ids = self.tab.join_dfs(grid_fs_df_pre, fs_proc_df, how='outer')
                 # _id_fsproc = self.extract_fs_proc()
-                return self.create_data_file()
+                return self.create_file_ids()
             else:
                 return False
 
@@ -100,10 +111,9 @@ class FSGLMrun:
             d[cle].append(val)
         return d
 
-    def create_data_file(self):
-        file_path_name = os.path.join(self.materials_DIR, self.project_vars["fname_groups"])
-        print('creating file with groups {}'.format(file_path_name))
-        self.tab.save_df(self.grid_df, file_path_name, sheet_name = 'grid')
+    def create_file_ids(self):
+        print('creating file with groups {}'.format(self.f_ids_proc_path))
+        self.save_json(self.f_ids, self.f_ids_proc_path)
         return True
 
 
