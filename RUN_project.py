@@ -5,7 +5,8 @@
 project = "belleville_kenia"
 
 STEP0_make_groups        = False
-STEP1_run_fslgm          = True
+STEP1_run_fslgm          = False
+STEP2_extract_fslgm_img  = True
 
 from bin import nimb_link
 NIMB_HOME = nimb_link.link_with_nimb()
@@ -35,3 +36,59 @@ if STEP1_run_fslgm:
 		os.system('python3 nimb.py -process fs-glm -project {}'.format(project))
 	else:
 		print('file for GLM is not ready')
+
+if STEP2_extract_fslgm_img:
+	print('ready to extract FreeSurfer GLM images')
+	import os
+	os.chdir(NIMB_HOME)
+	os.system('python3 nimb.py -process fs-glm-image -project {}'.format(project))
+
+
+
+def get_parameters():
+    """get parameters for nimb"""
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+            Documentation at https://github.com/alexhanganu/nimb
+            """,
+    )
+
+    parser.add_argument(
+        "-src", required=True,
+        help="absolute path to MR data to be classified",
+    )
+
+    parser.add_argument(
+        "-o", required=True,
+        help="output folder of bids classified files",
+    )
+
+    parser.add_argument(
+        "-project", required=True,
+    )
+
+    parser.add_argument(
+        "-rep", required=False,
+        default=5,
+        help="number of repetitions to use to retry the dcm2bids classification, default is 5",
+    )
+
+    params = parser.parse_args()
+    return params
+
+
+if __name__ == "__main__":
+    from pathlib import Path
+    top = Path(__file__).resolve().parents[1]
+    sys.path.append(str(top))
+    from classification.classify_definitions import BIDS_types, mr_modalities, mr_modality_nimb_2_dcm2bids
+    from distribution.manage_archive import is_archive, ZipArchiveManagement
+    from distribution.utilities import makedir_ifnot_exist, load_json, save_json
+    from distribution.distribution_definitions import DEFAULT
+
+    params      = get_parameters()
+    DCM2BIDS_tester(params, repeat_lim = params.rep).run()
+
+
+
