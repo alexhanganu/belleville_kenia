@@ -10,17 +10,25 @@ class VARS():
     def f_source(self):
         f_source = os.path.join(self.materials_DIR,
                 'source','WM_Stats to Alex_22 dec 2020.xlsx').replace(os.sep, '/')
-        params_x, params_y, params_y_task = self.params_demographics()
-        return {'source':{'file': f_source, 'sheet' : 'WM_fmri_data', 'ids':self.project_vars['id_col'],
+        f_source2 = os.path.join(self.materials_DIR,
+                'source','BetaValues_ToAlex_june10_2021.xlsx').replace(os.sep, '/')
+        params_x, params_y, params_y_task, params_y_source2 = self.params_demographics()
+        return {
+                'source':{'file': f_source2, 'sheet' : 'To Alex', 'ids':self.project_vars['id_col'],
+                          'cols': [self.project_vars['id_col'], self.project_vars['group_col']]+params_x+params_y_source2,
+                          'rename': ''},
+
+                'source_old':{'file': f_source, 'sheet' : 'WM_fmri_data', 'ids':self.project_vars['id_col'],
                           'cols': [self.project_vars['id_col'], self.project_vars['group_col']]+params_x+params_y+params_y_task,
                           'rename': ''},
                 'freesurfer': {'file': f_source, 'sheet' : 'données Alex_FS-711', 'ids':'ID',
                          'cols':self.params_fs(),
                          'rename': ''},
-                'grid':{'file':os.path.join(self.materials_DIR,'grid.csv'),
+                'grid':{'file':os.path.join(self.materials_DIR, self.project_vars["fname_groups"]),
                         'sheet': 'grid', 'ids': self.project_vars['id_col'],
                         'cols': [self.project_vars['id_col'], self.project_vars['group_col']]+params_x+params_y+params_y_task,
-                        'rename': ''}}
+                        'rename': ''},
+                'rois': {'file':os.path.join(self.materials_DIR,"rois.json")}}
 
     def fs_processed_path(self):
         return '/media/ssp/Samira_Rouge_structurelle/backup_samira/IRM_Structurelle/Aanalyse_structurelle/freesurfer_711/'
@@ -32,9 +40,58 @@ class VARS():
 
     def params_demographics(self):
         params_x = ['Age',]
-        params_y_cog = ['Gender', 'Scol', 'MMSE', 'MoCA', 'Boston', 'BORB_lignes', 'Hachinski', 'Charlson', 'AVQ', 'Rey_co_tps', 'Rey_co_pts', 'Rey_3min', 'Str_pts_tps', 'Str_mots_tps', 'Str_coul_tps', 'Str_coul_pts', 'RLRI_imm', 'RLRI_RL1', 'RLRI_RT1', 'RLRI_RL2', 'RLRI_RT2', 'RLRI_RL3', 'RLRI_RT3', 'RLRI_RLd', 'RLRI_RTd', 'RLRI_rec','GDS', 'Vocab_Brut', 'Vocab_Stand', 'Bartréz_Complet', 'Bartréz', 'Scolprof', 'Brixton_Brut', 'Brixton_Stand', 'Hit_correted_0back', 'Hit_correted_1back', 'Hit_correted_2back', 'FA_corrected_0back', 'FA_corrected_1back', 'FA_corrected_2back', 'Hit_FA_corrected_0back', 'Hit_FA_corrected_1back', 'Hit_FA_corrected_2back', 'dprime_0back', 'dprime_1back', 'dprime_2back', 'dprime_1back_0back', 'dprime_2back_0back', 'dprime_2back_1back', 'Total_pRT_0back', 'Total_pRT_1back', 'Total_pRT_2back', 'Total_pRT_1back_0back', 'Total_pRT_2back_0back', 'Total_pRT_2back_1back', 'Mean_pRT_0back', 'Mean_pRT_1back', 'Mean_pRT_2back', 'Mean_pRT_1back_0back', 'Mean_pRT_2back_0back', 'Mean_pRT_2back_1back', ]
-        params_y_task = ['left_hip_vol', 'Right_hip_vol', 'Total_hip_vol', 'mean_hip_vol', 'beta_1_0back_lbprob_BA6_left', 'beta_1_0back_lbprob_BA6_right', 'beta_1_0back_lbprob_BA9_46_left', 'beta_1_0back_lbprob_BA9_46_right', 'back_1_0back_lbprob_IPL_left', 'beta_1_0back_lbprob_IPL_right', 'beta_1_0back_lbprob_MPFC_symm', 'beta_1_0back_lball_ROI', 'beta_2_1back_lbprob_BA6_left', 'beta_2_1back_lbprob_BA6_right', 'beta_2_1back_lbprob_BA9_46_left', 'beta_2_1back_lbprob_BA9_46_right', 'back_2_1back_lbprob_IPL_left', 'beta_2_1back_lbprob_IPL_right', 'beta_2_1back_lbprob_MPFC_symm', 'beta_2_1back_lball_ROI']
-        return params_x, params_y_cog, params_y_task
+        params_y_cog = ['Gender', 'Scol', 'MMSE', 'MoCA', 'Boston', 'BORB_lignes',
+                        'Hachinski', 'Charlson', 'AVQ', 'Rey_co_tps', 'Rey_co_pts',
+                        'Rey_3min', 'Str_pts_tps', 'Str_mots_tps', 'Str_coul_tps',
+                        'Str_coul_pts', 'RLRI_imm', 'RLRI_RL1', 'RLRI_RT1', 'RLRI_RL2', 
+                        'RLRI_RT2', 'RLRI_RL3', 'RLRI_RT3', 'RLRI_RLd', 'RLRI_RTd',
+                        'RLRI_rec','GDS', 'Vocab_Brut', 'Vocab_Stand', 'Bartréz_Complet',
+                        'Bartréz', 'Scolprof', 'Brixton_Brut', 'Brixton_Stand',
+                        'Hit_correted_0back', 'Hit_correted_1back', 'Hit_correted_2back',
+                        'FA_corrected_0back', 'FA_corrected_1back', 'FA_corrected_2back',
+                        'Hit_FA_corrected_0back', 'Hit_FA_corrected_1back',
+                        'Hit_FA_corrected_2back', 'dprime_0back', 'dprime_1back',
+                        'dprime_2back', 'dprime_1back_0back', 'dprime_2back_0back',
+                        'dprime_2back_1back', 'Total_pRT_0back', 'Total_pRT_1back',
+                        'Total_pRT_2back', 'Total_pRT_1back_0back', 'Total_pRT_2back_0back',
+                        'Total_pRT_2back_1back', 'Mean_pRT_0back', 'Mean_pRT_1back',
+                        'Mean_pRT_2back', 'Mean_pRT_1back_0back', 'Mean_pRT_2back_0back',
+                        'Mean_pRT_2back_1back', ]
+        params_y_task = ['left_hip_vol', 'Right_hip_vol', 'Total_hip_vol', 'mean_hip_vol',
+                        'beta_1_0back_lbprob_BA6_left', 'beta_1_0back_lbprob_BA6_right',
+                        'beta_1_0back_lbprob_BA9_46_left', 'beta_1_0back_lbprob_BA9_46_right',
+                        'back_1_0back_lbprob_IPL_left', 'beta_1_0back_lbprob_IPL_right',
+                        'beta_1_0back_lbprob_MPFC_symm', 'beta_1_0back_lball_ROI',
+                        'beta_2_1back_lbprob_BA6_left', 'beta_2_1back_lbprob_BA6_right',
+                        'beta_2_1back_lbprob_BA9_46_left', 'beta_2_1back_lbprob_BA9_46_right',
+                        'back_2_1back_lbprob_IPL_left', 'beta_2_1back_lbprob_IPL_right',
+                        'beta_2_1back_lbprob_MPFC_symm', 'beta_2_1back_lball_ROI']
+        params_y_source2 = ['Gender',
+                            "1_0back_lbprob_BA6_left_-34_7_49",
+                            "1_0back_lbprob_BA6_right_37_9_50",
+                            "1_0back_lbprob_BA9_46_left_-46_22_28",
+                            "1_0back_lbprob_BA9_46_right_48_22_29",
+                            "1_0back_lbprob_IPL_left_-39_-48_48",
+                            "1_0back_lbprob_IPL_right_45_-47_47",
+                            "1_0back_lbprob_MPFC_symm_1_21_45",
+                            "1_0back_lbprob_ROI_All",
+                            "2_0back_lbprob_BA6_left_-34_7_49",
+                            "2_0back_lbprob_BA6_right_37_9_50",
+                            "2_0back_lbprob_BA9_46_left_-46_22_28",
+                            "2_0back_lbprob_BA9_46_right_48_22_29",
+                            "2_0back_lbprob_IPL_left_-39_-48_48",
+                            "2_0back_lbprob_IPL_right_45_-47_47",
+                            "2_0back_lbprob_MPFC_symm_1_21_45",
+                            "2_0back_lbprob_ROI_All",
+                            "2_1back_lbprob_BA6_left_-34_7_49",
+                            "2_1back_lbprob_BA6_right_37_9_50",
+                            "2_1back_lbprob_BA9_46_left_-46_22_28",
+                            "2_1back_lbprob_BA9_46_right_48_22_29",
+                            "2_1back_lbprob_IPL_left_-39_-48_48",
+                            "2_1back_lbprob_IPL_right_45_-47_47",
+                            "2_1back_lbprob_MPFC_symm_1_21_45",
+                            "2_1back_lbprob_ROI_All"]
+        return params_x, params_y_cog, params_y_task, params_y_source2
 
     def params_other(self):
         return ['Clinical_Date', 'BEM_imm', 'BEM_dif', 'Str_pts_pts', 'Str_mots_pts',  'RLRI_recS', 'RLRI_recN', 'beta_2_0back_lbprob_BA6_left', 'beta_2_0back_lbprob_BA6_right', 'beta_2_0back_lbprob_BA9_46_left', 'beta_2_0back_lbprob_BA9_46_right', 'back_2_0back_lbprob_IPL_left', 'beta_2_0back_lbprob_IPL_right', 'beta_2_0back_lbprob_MPFC_symm', 'beta_2_0back_lball_ROI',]
@@ -54,3 +111,5 @@ class VARS():
          
          #other brain struct not used:
          # 'wm_hypointensitiesL_VolSeg', 'WMhypointensitiesR_VolSeg', 'nonWMhypointensities_VolSeg', 'nonWMhypointensitiesL_VolSeg', 'nonWMhypointensitiesR_VolSeg', 'cortex_vol_VolL_DK', 'cortex_vol_VolR_DK'
+
+
