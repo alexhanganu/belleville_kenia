@@ -26,12 +26,20 @@ class RUNProject:
     def run_step(self, step2run):
         if step2run == "STEP0_make_groups":
             from bin.step1_make_groups import MakeGroupFile
-            MakeGroupFile(self.project_vars, Table, Preprocess)
+            MakeGroupFile(self.project_vars,
+                        Table,
+                        Preprocess,
+                        load_json)
 
         if step2run == "STEP1_run_fsglm":
             FS_SUBJECTS_DIR = all_vars.location_vars['local']['FREESURFER']['FS_SUBJECTS_DIR']
             from bin.step2_fsglm_run import FSGLMrun
-            ready = FSGLMrun(self.project_vars, self.vars_local, save_json, Table, manage_archive, FS_SUBJECTS_DIR)
+            ready = FSGLMrun(self.project_vars,
+                            self.vars_local,
+                            save_json,
+                            Table,
+                            manage_archive,
+                            FS_SUBJECTS_DIR)
             if ready:
                 print('ready for FreeSurfer GLM')
                 os.chdir(NIMB_HOME)
@@ -50,6 +58,7 @@ class RUNProject:
             MakeGroupFile(self.project_vars,
                             Table,
                             Preprocess,
+                            load_json,
                             rois = True)
 
 
@@ -115,7 +124,7 @@ if __name__ == "__main__":
     from setup.get_vars import Get_Vars, SetProject
     from stats.db_processing import Table
     from stats.preprocessing import Preprocess
-    from distribution.utilities import save_json
+    from distribution.utilities import save_json, load_json
     from distribution import manage_archive
 
     params   = get_parameters(project)
