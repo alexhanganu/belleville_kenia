@@ -14,8 +14,10 @@ Return:
     True or False if all steps are correct and finished
 '''
 
-from os import path
+import os
+import sys
 from .vars import VARS
+
 
 class MakeGroupFile:
 
@@ -28,24 +30,16 @@ class MakeGroupFile:
         self.vars          = VARS(project_vars)
         self._id           = project_vars['id_col']
         self.files         = self.vars.f_source()
-        self.miss_val_file = path.join(self.materials_DIR, "missing_values.json")
-        if not rois:
-            self.run()
-        else:
-            self.make_rois_grid()
+        self.miss_val_file = os.path.join(self.materials_DIR, "missing_values.json")
+        self.rois          = rois
+        self.run()
 
 
     def run(self):
-        src_file    = self.files['source']
-        src_fs_file = self.files['freesurfer']
-        df    = self.tab.get_df(src_file['file'],
-                                    src_file['sheet'],
-                                    src_file['cols'],
-                                    src_file['ids'])
-        df_fs = self.tab.get_df(src_fs_file['file'],
-                                    src_fs_file['sheet'],
-                                    src_fs_file['cols'],
-                                    src_fs_file['ids'])
+        df    = self.get_source_data()
+        df_fs = self.get_freesurfer_data()
+        if self.rois:
+            df_fs = self.make_rois_grid()
         self.grid_df = self.tab.join_dfs(df, df_fs, how='outer')
         self.groups = self.preproc.get_groups(self.grid_df[self.project_vars["group_col"]].tolist())
         self.grid_df.index.name = self._id
@@ -55,12 +49,9 @@ class MakeGroupFile:
 
     def make_rois_grid(self):
         print("    making rois grid")
-        f_rois = self.files['rois']['file']
-        if path.exists(f_rois):
-            self.rois = self.load_json(f_rois)
-            print(self.rois)
-        else:
-            print(f"    file with rois is missing: {f_rois}")
+        fs_rois = self.rois()
+        df_fs   = self.get_freesurfer_data()
+        return df_fs
 
 
     def populate_missing_data(self):
@@ -88,7 +79,33 @@ class MakeGroupFile:
                 self.grid_df.at[ix, col] = exceptions[ix][col]
 
 
+    def rois(self):
+        f_rois = self.files['rois']['file']
+        if os.path.exists(f_rois):
+            rois = self.load_json(f_rois)
+            return [i for k in rois.values() for i in k]
+        else:
+            print(f"    file with rois is missing: {f_rois}")
+            sys.exit(0)
+
+
+    def get_source_data(self):
+        src_file    = self.files['source']
+        return = self.tab.get_df(src_file['file'],
+                                src_file['sheet'],
+                                src_file['cols'],
+                                src_file['ids'])
+
+
+    def get_freesurfer_data(self):
+        src_fs_file = self.files['freesurfer']
+        return = self.tab.get_df(src_fs_file['file'],
+                                src_fs_file['sheet'],
+                                src_fs_file['cols'],
+                                src_fs_file['ids'])
+
+
     def create_data_file(self):
-        file_path_name = path.join(self.materials_DIR, self.project_vars["GLM_file_group"])
+        file_path_name = os.path.join(self.materials_DIR, self.project_vars["GLM_file_group"])
         print('creating file with groups {}'.format(file_path_name))
         self.tab.save_df(self.grid_df, file_path_name, sheet_name = 'grid')
