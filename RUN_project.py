@@ -11,6 +11,7 @@ class RUNProject:
         self.project      = all_vars.params.project
         self.vars_local   = all_vars.location_vars['local']
         self.project_vars = all_vars.projects[self.project]
+        self.add_date     = all_vars.params.date
         self.get_steps(all_vars)
 
 
@@ -55,11 +56,15 @@ class RUNProject:
         if step2run == "STEP3_ger_ROIs_grid":
             print('    ready to create ROIs grid')
             from bin.step1_make_groups import MakeGroupFile
+            add_date = False
+            if self.add_date == "1":
+                add_date = True
             MakeGroupFile(self.project_vars,
                             Table,
                             Preprocess,
                             load_json,
-                            rois = True)
+                            rois = True,
+                            add_date = add_date)
 
 
     def get_steps(self, all_vars):
@@ -74,7 +79,7 @@ class RUNProject:
                 "run" : False},
         }
         if all_vars.params.step == 00:
-            for i in (0, 1, 2, 3, 4):
+            for i in ("0", "1", "2", "3"):
                 self.steps[i]["run"] = True
         else:
             self.steps[all_vars.params.step]["run"] = True
@@ -109,6 +114,12 @@ def get_parameters(project):
         "-test", required=False,
         default=0,
         help="testing ? (yes = 1 = True) or NOT testing but running (no = 0 = False); default is 0",
+    )
+
+    parser.add_argument(
+        "-date", required=False,
+        default=0,
+        help="add date to the newly created grid ? (1 = yes; 0 = no); default is 0",
     )
 
     params = parser.parse_args()
