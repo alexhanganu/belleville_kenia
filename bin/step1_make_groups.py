@@ -32,6 +32,7 @@ class MakeGroupFile:
         self.miss_val_file = os.path.join(self.materials_DIR, "missing_values.json")
         self.rois          = rois
         self.add_date      = add_date
+        self.date          = "20210730"
         self.run()
 
 
@@ -106,6 +107,6 @@ class MakeGroupFile:
         file_path_name = os.path.join(self.materials_DIR, self.project_vars["fname_groups"])
         if self.add_date:
             filename, extension = os.path.splitext(file_path_name)
-            file_path_name = f"{filename}_20210730{extension}"
+            file_path_name = f"{filename}_{self.date}{extension}"
         print('creating file with groups {}'.format(file_path_name))
         self.tab.save_df(self.grid_df, file_path_name, sheet_name = 'grid')
